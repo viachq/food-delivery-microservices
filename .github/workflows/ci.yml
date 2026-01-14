@@ -24,4 +24,4 @@ jobs:
       # 3. Спробувати зібрати проект
       # Це найважливіший крок! Він робить те саме, що ти робив командою 'docker-compose build'
       - name: Build with Docker Compose
-        run: docker-compose build
+        run: docker compose build
