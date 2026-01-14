@@ -1,0 +1,41 @@
+# Приклад PersistentVolumeClaim для production
+# Використовуйте замість emptyDir в deployment.yaml
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pvc
+  namespace: food-delivery
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard  # Змініть на ваш storage class
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: catalog-db-pvc
+  namespace: food-delivery
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: order-db-pvc
+  namespace: food-delivery
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard

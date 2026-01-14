@@ -1,0 +1,27 @@
+name: CI - Build Check
+
+# Коли запускати цю перевірку?
+on:
+  push:
+    branches: [ "main" ]       # При кожному пуші в гілку main
+  pull_request:
+    branches: [ "main" ]       # При створенні Pull Request в main
+
+jobs:
+  build-and-test:
+    # На якій машині запускати (GitHub дає це безкоштовно)
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Скачати твій код на віртуальну машину
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Налаштувати Docker (він вже є на Ubuntu, але це налаштовує плагіни)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # 3. Спробувати зібрати проект
+    # Це найважливіший крок! Він робить те саме, що ти робив командою 'docker-compose build'
+    - name: Build with Docker Compose
+      run: docker-compose build
