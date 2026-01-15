@@ -6,8 +6,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.user import User
-from backend.core.enums import UserRole
-from backend.deps import get_current_user, require_roles
+from backend.deps import get_current_user
 from backend.core.security import hash_password
 
 

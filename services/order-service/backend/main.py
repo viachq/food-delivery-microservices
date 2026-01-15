@@ -11,11 +11,6 @@ from backend.database import Base
 from backend.database.session import engine
 
 # Import only models managed by this service
-from backend.models.order import Order
-from backend.models.order_item import OrderItem
-from backend.models.payment import Payment
-from backend.models.review import Review
-from backend.models.cart import Cart, CartItem
 
 # Import routers
 from backend.routers import (

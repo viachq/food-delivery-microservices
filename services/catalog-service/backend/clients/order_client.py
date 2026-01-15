@@ -2,7 +2,6 @@
 HTTP client for communicating with Order Service.
 """
 from typing import Optional
-from fastapi import HTTPException
 import httpx
 
 from backend.clients.base_client import BaseServiceClient
@@ -29,7 +28,7 @@ class OrderServiceClient(BaseServiceClient):
             HTTPException: If service unavailable
         """
         try:
-            response = self.get(f"/reviews", params={"restaurant_id": restaurant_id})
+            response = self.get("/reviews", params={"restaurant_id": restaurant_id})
             return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:

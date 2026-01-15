@@ -1,7 +1,7 @@
 """
 Restaurant model and related database schema.
 """
-from sqlalchemy import Column, Integer, String, Text, Boolean
+from sqlalchemy import Column, Integer, String, Text
 from backend.database.base import Base
 
 

@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.category import Category
-from backend.models.menu_item import MenuItem
 
 
 router = APIRouter(prefix="/categories", tags=["categories"])

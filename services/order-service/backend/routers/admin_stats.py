@@ -3,7 +3,6 @@ Admin statistics endpoints.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from collections import Counter
 
 from backend.database import get_db

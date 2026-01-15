@@ -3,7 +3,6 @@ Base HTTP client with retry logic for inter-service communication.
 Supports both sync and async operations.
 """
 import httpx
-from typing import Optional
 from fastapi import HTTPException
 
 
@@ -52,7 +51,6 @@ class BaseServiceClient:
         path = path.lstrip('/')
         url = f"{self.base_url}/{path}"
         
-        last_exception = None
         for attempt in range(self.max_retries):
             try:
                 response = self.client.request(method, url, **kwargs)
@@ -65,9 +63,7 @@ class BaseServiceClient:
                         status_code=e.response.status_code,
                         detail=f"Service error: {e.response.text}"
                     )
-                last_exception = e
-            except (httpx.TimeoutException, httpx.ConnectError) as e:
-                last_exception = e
+            except (httpx.TimeoutException, httpx.ConnectError):
                 if attempt < self.max_retries - 1:
                     continue  # Retry on network errors
         

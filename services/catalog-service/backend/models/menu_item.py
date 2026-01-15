@@ -1,7 +1,7 @@
 """
 Menu item model and related database schema.
 """
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from backend.database.base import Base
 

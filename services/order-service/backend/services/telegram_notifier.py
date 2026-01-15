@@ -64,7 +64,7 @@ async def send_new_order_notification(
         # Build message
         message_parts = [
             f"🆕 <b>Нове замовлення #{order_id}</b>",
-            f"",
+            "",
             f"💰 Сума: <b>{price_uah:.2f} грн</b>",
             f"📦 Товарів: {items_count}",
             f"📍 Адреса: {delivery_address}",
@@ -81,7 +81,7 @@ async def send_new_order_notification(
             formatted_time = delivery_time.strftime("%d.%m.%Y о %H:%M")
             message_parts.append(f"🕐 Доставити до: {formatted_time}")
         else:
-            message_parts.append(f"🕐 Доставити: якнайшвидше")
+            message_parts.append("🕐 Доставити: якнайшвидше")
         
         message = "\n".join(message_parts)
         
