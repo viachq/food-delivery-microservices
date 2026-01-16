@@ -12,7 +12,7 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
-    }, // <--- ДУЖКА ЗАКРИВАЄ languageOptions ТУТ. ЦЕ ВАЖЛИВО!
+    },
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
@@ -23,8 +23,8 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Ваше правило для вимкнення помилки any:
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 )
+// Updated config to fix CI/CD
