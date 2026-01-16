@@ -1,6 +1,7 @@
 """
 Admin menu management endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,9 @@ router = APIRouter(prefix="/admin/menu", tags=["admin:menu"])
 def create_item(
     payload: MenuItemCreate,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Create menu item for default restaurant."""
     item = MenuItem(
@@ -33,11 +36,12 @@ def create_item(
     db.add(item)
     db.commit()
     db.refresh(item)
-    
+
     # Clear cache for menu items after create
     from backend.routers.menu import clear_menu_items_cache
+
     clear_menu_items_cache()
-    
+
     return item
 
 
@@ -46,13 +50,15 @@ def update_item(
     item_id: int,
     payload: MenuItemUpdate,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Update menu item."""
     item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Menu item not found")
-    
+
     if payload.name is not None:
         item.name = payload.name
     if payload.description is not None:
@@ -63,14 +69,15 @@ def update_item(
         item.category_id = payload.category_id
     if payload.image_url is not None:
         item.image_url = payload.image_url
-    
+
     db.commit()
     db.refresh(item)
-    
+
     # Clear cache for menu items after update
     from backend.routers.menu import clear_menu_items_cache
+
     clear_menu_items_cache()
-    
+
     return item
 
 
@@ -78,18 +85,21 @@ def update_item(
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Delete menu item."""
     item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Menu item not found")
-    
+
     db.delete(item)
     db.commit()
-    
+
     # Clear cache for menu items after delete
     from backend.routers.menu import clear_menu_items_cache
+
     clear_menu_items_cache()
-    
+
     return {"message": "Menu item deleted"}

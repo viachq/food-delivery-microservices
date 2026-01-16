@@ -1,6 +1,7 @@
 """
 Admin restaurant management endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -22,13 +23,15 @@ def update_restaurant(
     phone: str | None = None,
     opening_hours: str | None = None,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)),
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Update restaurant information."""
     r = db.query(Restaurant).filter(Restaurant.id == DEFAULT_RESTAURANT_ID).first()
     if not r:
         raise HTTPException(status_code=404, detail="Restaurant not found")
-    
+
     if name is not None:
         r.name = name
     if description is not None:
@@ -39,14 +42,15 @@ def update_restaurant(
         r.phone = phone
     if opening_hours is not None:
         r.opening_hours = opening_hours
-    
+
     db.commit()
     db.refresh(r)
-    
+
     # Clear cache for get_restaurant_info after update
     from backend.routers.restaurants import clear_restaurant_info_cache
+
     clear_restaurant_info_cache()
-    
+
     return {
         "message": "Restaurant updated successfully",
         "id": r.id,
@@ -54,5 +58,5 @@ def update_restaurant(
         "description": r.description,
         "address": r.address,
         "phone": r.phone,
-        "opening_hours": r.opening_hours
+        "opening_hours": r.opening_hours,
     }

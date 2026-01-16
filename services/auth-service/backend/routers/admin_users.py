@@ -1,6 +1,7 @@
 """
 Admin user management endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -18,7 +19,7 @@ def change_user_role(
     user_id: int,
     role: str,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN))
+    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN)),
 ):
     """Change user role (system admin only)."""
     # Find user
@@ -32,7 +33,7 @@ def change_user_role(
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid role. Must be one of: {', '.join([r.value for r in UserRole])}"
+            detail=f"Invalid role. Must be one of: {', '.join([r.value for r in UserRole])}",
         )
 
     user.role = new_role.value
@@ -43,22 +44,15 @@ def change_user_role(
         "message": "Role updated successfully",
         "user_id": user.id,
         "username": user.username,
-        "role": user.role
+        "role": user.role,
     }
 
 
 @router.get("/")
 def get_all_users(
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN))
+    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN)),
 ):
     """Get all users (admin only)."""
     users = db.query(User).all()
-    return [
-        {
-            "id": u.id,
-            "username": u.username,
-            "role": u.role
-        }
-        for u in users
-    ]
+    return [{"id": u.id, "username": u.username, "role": u.role} for u in users]

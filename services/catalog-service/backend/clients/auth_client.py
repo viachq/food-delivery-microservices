@@ -1,6 +1,7 @@
 """
 HTTP client for communicating with Auth Service.
 """
+
 from typing import Optional
 from fastapi import HTTPException
 import httpx
@@ -11,20 +12,20 @@ from backend.core.config import AUTH_SERVICE_URL
 
 class AuthServiceClient(BaseServiceClient):
     """Client for Auth Service API."""
-    
+
     def __init__(self):
         super().__init__(AUTH_SERVICE_URL)
-    
+
     def get_user_by_username(self, username: str) -> dict:
         """
         Get user information by username.
-        
+
         Args:
             username: Username
-        
+
         Returns:
             User data dictionary
-        
+
         Raises:
             HTTPException: If user not found or service unavailable
         """

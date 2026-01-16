@@ -1,6 +1,7 @@
 """
 User management endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -19,11 +20,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return {
-        "id": user.id,
-        "username": user.username,
-        "role": user.role
-    }
+    return {"id": user.id, "username": user.username, "role": user.role}
 
 
 @router.get("/username/{username}")
@@ -32,11 +29,7 @@ def get_user_by_username(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return {
-        "id": user.id,
-        "username": user.username,
-        "role": user.role
-    }
+    return {"id": user.id, "username": user.username, "role": user.role}
 
 
 @router.get("/me")
@@ -45,7 +38,7 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "username": current_user.username,
-        "role": current_user.role
+        "role": current_user.role,
     }
 
 
@@ -54,15 +47,16 @@ def update_my_profile(
     username: str = None,
     password: str = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Update own profile."""
     if username:
         # Check if username already taken
-        existing = db.query(User).filter(
-            User.username == username,
-            User.id != current_user.id
-        ).first()
+        existing = (
+            db.query(User)
+            .filter(User.username == username, User.id != current_user.id)
+            .first()
+        )
         if existing:
             raise HTTPException(status_code=400, detail="Username already taken")
         current_user.username = username
@@ -76,5 +70,5 @@ def update_my_profile(
     return {
         "message": "Profile updated",
         "id": current_user.id,
-        "username": current_user.username
+        "username": current_user.username,
     }

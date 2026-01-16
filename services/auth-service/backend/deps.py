@@ -1,6 +1,7 @@
 """
 Dependency injection functions for FastAPI endpoints.
 """
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -37,6 +38,7 @@ def get_current_user(
 
 def require_roles(*allowed_roles: UserRole):
     """Role-based access control."""
+
     def role_checker(user: User = Depends(get_current_user)) -> User:
         if allowed_roles and user.role not in [role.value for role in allowed_roles]:
             raise HTTPException(status_code=403, detail="Access forbidden")

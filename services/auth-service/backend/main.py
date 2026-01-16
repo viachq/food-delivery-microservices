@@ -2,6 +2,7 @@
 Auth Service - Main FastAPI application with database initialization.
 This service manages only User authentication and authorization.
 """
+
 import traceback
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,21 +55,25 @@ def init_default_users():
                 "username": "client",
                 "password": "client",
                 "role": UserRole.CLIENT,
-            }
+            },
         ]
 
         for user_data in default_users:
-            existing = db.query(User).filter(User.username == user_data["username"]).first()
+            existing = (
+                db.query(User).filter(User.username == user_data["username"]).first()
+            )
             if existing is None:
                 user = User(
                     username=user_data["username"],
                     password=hash_password(user_data["password"]),
-                    role=user_data["role"].value
+                    role=user_data["role"].value,
                 )
                 db.add(user)
                 db.commit()
                 db.refresh(user)
-                print(f"[OK] User created: {user_data['username']} (password: {user_data['password']}, role: {user_data['role'].value})")
+                print(
+                    f"[OK] User created: {user_data['username']} (password: {user_data['password']}, role: {user_data['role'].value})"
+                )
     finally:
         db.close()
 
@@ -102,11 +107,7 @@ app.include_router(users_router.router)
 @app.get("/health")
 def health():
     """Health check endpoint."""
-    return {
-        "status": "ok",
-        "service": "auth-service",
-        "version": "1.0.0"
-    }
+    return {"status": "ok", "service": "auth-service", "version": "1.0.0"}
 
 
 # Global exception handler
@@ -123,5 +124,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"error": str(exc), "type": type(exc).__name__}
+        content={"error": str(exc), "type": type(exc).__name__},
     )

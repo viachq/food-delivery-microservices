@@ -1,6 +1,7 @@
 """
 Telegram notification service for sending alerts to admins.
 """
+
 import logging
 from datetime import datetime
 from typing import Optional
@@ -27,7 +28,7 @@ async def send_new_order_notification(
 ) -> bool:
     """
     Send notification about new order to all admin chat IDs.
-    
+
     Args:
         order_id: The order ID
         total_price: Total price in kopiyky/cents
@@ -36,7 +37,7 @@ async def send_new_order_notification(
         user_name: User's name (optional)
         delivery_time: Scheduled delivery time (optional)
         items_count: Number of items in order
-    
+
     Returns:
         True if notification was sent successfully, False otherwise
     """
@@ -44,23 +45,23 @@ async def send_new_order_notification(
     if not TELEGRAM_NOTIFICATIONS_ENABLED:
         logger.debug("Telegram notifications are disabled")
         return False
-    
+
     # Check if bot token is configured
     if not TELEGRAM_BOT_TOKEN:
         logger.warning("TELEGRAM_BOT_TOKEN is not configured")
         return False
-    
+
     # Check if there are admin chat IDs
     if not TELEGRAM_ADMIN_CHAT_IDS:
         logger.warning("TELEGRAM_ADMIN_CHAT_IDS is not configured")
         return False
-    
+
     try:
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        
+
         # Format price (convert from kopiyky to UAH)
         price_uah = total_price / 100
-        
+
         # Build message
         message_parts = [
             f"🆕 <b>Нове замовлення #{order_id}</b>",
@@ -69,22 +70,22 @@ async def send_new_order_notification(
             f"📦 Товарів: {items_count}",
             f"📍 Адреса: {delivery_address}",
         ]
-        
+
         # Add user info if available
         if user_name:
             message_parts.append(f"👤 Клієнт: {user_name}")
         if user_phone:
             message_parts.append(f"📱 Телефон: {user_phone}")
-        
+
         # Add delivery time if scheduled
         if delivery_time:
             formatted_time = delivery_time.strftime("%d.%m.%Y о %H:%M")
             message_parts.append(f"🕐 Доставити до: {formatted_time}")
         else:
             message_parts.append("🕐 Доставити: якнайшвидше")
-        
+
         message = "\n".join(message_parts)
-        
+
         # Send to all admin chats (notification only, no action buttons)
         success = True
         for chat_id in TELEGRAM_ADMIN_CHAT_IDS:
@@ -98,10 +99,10 @@ async def send_new_order_notification(
             except Exception as e:
                 logger.error(f"Failed to send notification to chat {chat_id}: {e}")
                 success = False
-        
+
         await bot.session.close()
         return success
-        
+
     except Exception as e:
         logger.error(f"Error sending Telegram notification: {e}")
         return False
@@ -113,24 +114,28 @@ async def send_order_cancelled_notification(
 ) -> bool:
     """
     Send notification about order cancellation to admins.
-    
+
     Args:
         order_id: The order ID
         reason: Cancellation reason (optional)
-    
+
     Returns:
         True if notification was sent successfully, False otherwise
     """
-    if not TELEGRAM_NOTIFICATIONS_ENABLED or not TELEGRAM_BOT_TOKEN or not TELEGRAM_ADMIN_CHAT_IDS:
+    if (
+        not TELEGRAM_NOTIFICATIONS_ENABLED
+        or not TELEGRAM_BOT_TOKEN
+        or not TELEGRAM_ADMIN_CHAT_IDS
+    ):
         return False
-    
+
     try:
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        
+
         message = f"❌ <b>Замовлення #{order_id} скасовано</b>"
         if reason:
             message += f"\n\nПричина: {reason}"
-        
+
         for chat_id in TELEGRAM_ADMIN_CHAT_IDS:
             try:
                 await bot.send_message(
@@ -139,12 +144,13 @@ async def send_order_cancelled_notification(
                     parse_mode="HTML",
                 )
             except Exception as e:
-                logger.error(f"Failed to send cancellation notification to chat {chat_id}: {e}")
-        
+                logger.error(
+                    f"Failed to send cancellation notification to chat {chat_id}: {e}"
+                )
+
         await bot.session.close()
         return True
-        
+
     except Exception as e:
         logger.error(f"Error sending cancellation notification: {e}")
         return False
-

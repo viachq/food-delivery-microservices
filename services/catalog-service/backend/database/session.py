@@ -8,10 +8,7 @@ from backend.core.config import DATABASE_URL
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
         DATABASE_URL,
-        connect_args={
-            "check_same_thread": False,
-            "timeout": 30
-        },
+        connect_args={"check_same_thread": False, "timeout": 30},
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20,
@@ -40,5 +37,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-

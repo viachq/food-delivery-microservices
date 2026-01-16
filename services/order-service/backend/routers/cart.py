@@ -1,6 +1,7 @@
 """
 Cart management endpoints with authentication.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -27,8 +28,7 @@ def _get_or_create_cart(db: Session, user_id: int) -> Cart:
 
 @router.get("/me")
 def get_cart(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     """Get current user's cart."""
     cart = _get_or_create_cart(db, current_user.id)
@@ -36,7 +36,12 @@ def get_cart(
         "id": cart.id,
         "user_id": cart.user_id,
         "items": [
-            {"id": i.id, "menu_item_id": i.menu_item_id, "quantity": i.quantity, "price": i.price}
+            {
+                "id": i.id,
+                "menu_item_id": i.menu_item_id,
+                "quantity": i.quantity,
+                "price": i.price,
+            }
             for i in cart.items
         ],
     }
@@ -46,7 +51,7 @@ def get_cart(
 def add_item(
     payload: CartItemAdd,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Add item to current user's cart with validation."""
     cart = _get_or_create_cart(db, current_user.id)
@@ -54,7 +59,7 @@ def add_item(
         cart_id=cart.id,
         menu_item_id=payload.menu_item_id,
         quantity=payload.quantity,
-        price=payload.price
+        price=payload.price,
     )
     db.add(ci)
     db.commit()
@@ -67,7 +72,7 @@ def set_qty(
     cart_item_id: int,
     payload: CartItemUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Update quantity of item in current user's cart with validation."""
     cart = _get_or_create_cart(db, current_user.id)
@@ -83,7 +88,7 @@ def set_qty(
 def remove_item(
     cart_item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Remove item from current user's cart."""
     cart = _get_or_create_cart(db, current_user.id)
@@ -97,8 +102,7 @@ def remove_item(
 
 @router.delete("/me")
 def clear_cart(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     """Clear all items from current user's cart."""
     cart = _get_or_create_cart(db, current_user.id)
@@ -106,5 +110,3 @@ def clear_cart(
         db.delete(ci)
     db.commit()
     return {"message": "Cart cleared"}
-
-

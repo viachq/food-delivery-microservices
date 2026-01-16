@@ -15,14 +15,16 @@ router = APIRouter(prefix="/admin/orders", tags=["admin:orders"])
 def list_orders(
     status: str | None = None,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Get all orders for default restaurant (admin only)."""
     q = db.query(Order).filter(Order.restaurant_id == DEFAULT_RESTAURANT_ID)
-    
+
     if status is not None:
         q = q.filter(Order.status == status)
-    
+
     orders = q.all()
     return [
         {
@@ -32,7 +34,7 @@ def list_orders(
             "total_price": o.total_price,
             "delivery_address": o.delivery_address,
             "delivery_time": o.delivery_time.isoformat() if o.delivery_time else None,
-            "created_at": o.created_at.isoformat() if o.created_at else None
+            "created_at": o.created_at.isoformat() if o.created_at else None,
         }
         for o in orders
     ]
@@ -42,19 +44,21 @@ def list_orders(
 def get_order_details(
     order_id: int,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
 ):
     """Get detailed order information including order items (admin only)."""
     from backend.models.order_item import OrderItem
     from backend.clients.catalog_client import get_catalog_client
-    
+
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    
+
     # Get order items from local DB
     order_items = db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
-    
+
     # Get menu item names from catalog-service via HTTP
     catalog_client = get_catalog_client()
     items_data = []
@@ -65,16 +69,18 @@ def get_order_details(
             menu_item_name = menu_item.get("name", "Unknown")
         except HTTPException:
             pass  # Keep "Unknown" if menu item not found
-        
-        items_data.append({
-            "id": item.id,
-            "menu_item_id": item.menu_item_id,
-            "menu_item_name": menu_item_name,
-            "quantity": item.quantity,
-            "price": item.price,
-            "subtotal": item.price * item.quantity
-        })
-    
+
+        items_data.append(
+            {
+                "id": item.id,
+                "menu_item_id": item.menu_item_id,
+                "menu_item_name": menu_item_name,
+                "quantity": item.quantity,
+                "price": item.price,
+                "subtotal": item.price * item.quantity,
+            }
+        )
+
     return {
         "id": order.id,
         "user_id": order.user_id,
@@ -83,15 +89,24 @@ def get_order_details(
         "delivery_address": order.delivery_address,
         "payment_method": order.payment_method,
         "total_price": order.total_price,
-        "delivery_time": order.delivery_time.isoformat() if order.delivery_time else None,
+        "delivery_time": order.delivery_time.isoformat()
+        if order.delivery_time
+        else None,
         "created_at": order.created_at.isoformat() if order.created_at else None,
         "updated_at": order.updated_at.isoformat() if order.updated_at else None,
-        "items": items_data
+        "items": items_data,
     }
 
 
 @router.put("/{order_id}/status")
-def set_status(order_id: int, status: str, db: Session = Depends(get_db), _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))):
+def set_status(
+    order_id: int,
+    status: str,
+    db: Session = Depends(get_db),
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
+):
     o = db.query(Order).filter(Order.id == order_id).first()
     if not o:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -101,13 +116,31 @@ def set_status(order_id: int, status: str, db: Session = Depends(get_db), _: obj
 
 
 @router.put("/{order_id}/assign-courier")
-def assign_courier(order_id: int, courier_id: int, _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))):
+def assign_courier(
+    order_id: int,
+    courier_id: int,
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
+):
     # stub
-    return {"message": "Courier assigned", "order_id": order_id, "courier_id": courier_id}
+    return {
+        "message": "Courier assigned",
+        "order_id": order_id,
+        "courier_id": courier_id,
+    }
 
 
 @router.put("/{order_id}")
-def update_order_fields(order_id: int, address: str | None = None, operator_comment: str | None = None, db: Session = Depends(get_db), _: object = Depends(require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN))):
+def update_order_fields(
+    order_id: int,
+    address: str | None = None,
+    operator_comment: str | None = None,
+    db: Session = Depends(get_db),
+    _: object = Depends(
+        require_roles(UserRole.SYSTEM_ADMIN, UserRole.RESTAURANT_ADMIN)
+    ),
+):
     o = db.query(Order).filter(Order.id == order_id).first()
     if not o:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -116,5 +149,3 @@ def update_order_fields(order_id: int, address: str | None = None, operator_comm
     # operator_comment is not stored yet; stub
     db.commit()
     return {"message": "Order updated"}
-
-

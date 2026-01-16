@@ -2,6 +2,7 @@
 Order Service - Cart, Orders, Payments, Reviews, and Statistics.
 This service manages only Order, OrderItem, Payment, Review, and Cart entities.
 """
+
 import traceback
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,14 +27,16 @@ from backend.routers import (
 app = FastAPI(
     title="Order Service",
     version="1.0.0",
-    description="Cart, Orders, Payments, Reviews, and Statistics"
+    description="Cart, Orders, Payments, Reviews, and Statistics",
 )
 
 
 def init_db():
     """Initialize database tables for order-service (orders, order_items, payments, reviews, carts, cart_items)."""
     Base.metadata.create_all(bind=engine)
-    print("[OK] Order service: Database tables created (orders, order_items, payments, reviews, carts, cart_items)")
+    print(
+        "[OK] Order service: Database tables created (orders, order_items, payments, reviews, carts, cart_items)"
+    )
 
 
 @app.on_event("startup")
@@ -67,11 +70,7 @@ app.include_router(reviews.router)
 @app.get("/health")
 def health():
     """Health check endpoint."""
-    return {
-        "status": "ok",
-        "service": "order-service",
-        "version": "1.0.0"
-    }
+    return {"status": "ok", "service": "order-service", "version": "1.0.0"}
 
 
 # Global exception handler
@@ -88,5 +87,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"error": str(exc), "type": type(exc).__name__}
+        content={"error": str(exc), "type": type(exc).__name__},
     )

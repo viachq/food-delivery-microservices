@@ -1,6 +1,7 @@
 """
 Security utilities for JWT token validation (Catalog Service).
 """
+
 from typing import Optional
 
 from jose import JWTError, jwt

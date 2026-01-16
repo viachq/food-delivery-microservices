@@ -1,6 +1,7 @@
 """
 HTTP client for communicating with Order Service.
 """
+
 from typing import Optional
 import httpx
 
@@ -10,20 +11,20 @@ from backend.core.config import ORDER_SERVICE_URL
 
 class OrderServiceClient(BaseServiceClient):
     """Client for Order Service API."""
-    
+
     def __init__(self):
         super().__init__(ORDER_SERVICE_URL)
-    
+
     def get_reviews_by_restaurant(self, restaurant_id: int) -> list:
         """
         Get reviews for a restaurant.
-        
+
         Args:
             restaurant_id: Restaurant ID
-        
+
         Returns:
             List of reviews
-        
+
         Raises:
             HTTPException: If service unavailable
         """

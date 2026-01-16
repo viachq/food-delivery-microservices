@@ -1,6 +1,7 @@
 """
 Restaurant endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/restaurant", tags=["restaurant"])
 
 def clear_restaurant_info_cache():
     """Clear cache for get_restaurant_info. Call this after updating restaurant."""
-    if hasattr(get_restaurant_info, '_cache'):
+    if hasattr(get_restaurant_info, "_cache"):
         get_restaurant_info._cache = None
         get_restaurant_info._cache_time = 0
 
@@ -23,14 +24,18 @@ def clear_restaurant_info_cache():
 def get_restaurant_info(db: Session = Depends(get_db)):
     """Get information about our restaurant (cached for 1 hour)."""
     # Simple cache for restaurant info (changes very rarely)
-    if not hasattr(get_restaurant_info, '_cache'):
+    if not hasattr(get_restaurant_info, "_cache"):
         get_restaurant_info._cache = None
         get_restaurant_info._cache_time = 0
-    
+
     import time
+
     current_time = time.time()
     # Cache for 1 hour (3600 seconds)
-    if get_restaurant_info._cache is None or (current_time - get_restaurant_info._cache_time) > 3600:
+    if (
+        get_restaurant_info._cache is None
+        or (current_time - get_restaurant_info._cache_time) > 3600
+    ):
         r = db.query(Restaurant).filter(Restaurant.id == DEFAULT_RESTAURANT_ID).first()
         if not r:
             raise HTTPException(status_code=404, detail="Restaurant not found")
@@ -43,7 +48,7 @@ def get_restaurant_info(db: Session = Depends(get_db)):
             "opening_hours": r.opening_hours,
         }
         get_restaurant_info._cache_time = current_time
-    
+
     return get_restaurant_info._cache
 
 
@@ -51,7 +56,7 @@ def get_restaurant_info(db: Session = Depends(get_db)):
 def get_restaurant_reviews(db: Session = Depends(get_db)):
     """Get all reviews for our restaurant (fetches from order-service)."""
     from backend.clients.order_client import get_order_client
-    
+
     try:
         # Get reviews from order-service via HTTP
         order_client = get_order_client()

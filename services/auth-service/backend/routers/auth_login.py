@@ -1,6 +1,7 @@
 """
 User login endpoint.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -30,9 +31,5 @@ def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "role": user.role
-        }
+        "user": {"id": user.id, "username": user.username, "role": user.role},
     }

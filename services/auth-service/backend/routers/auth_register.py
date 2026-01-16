@@ -1,6 +1,7 @@
 """
 User registration endpoint.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -25,7 +26,7 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     new_user = User(
         username=payload.username,
         password=hash_password(payload.password),
-        role=UserRole.CLIENT.value
+        role=UserRole.CLIENT.value,
     )
 
     db.add(new_user)
@@ -35,5 +36,5 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     return {
         "message": "User registered successfully",
         "user_id": new_user.id,
-        "username": new_user.username
+        "username": new_user.username,
     }

@@ -1,6 +1,7 @@
 """
 Security utilities for password hashing and JWT token management.
 """
+
 import hashlib
 import os
 from datetime import datetime, timedelta, timezone
@@ -39,11 +40,13 @@ def verify_password(plain_password: str, stored_password: str) -> bool:
     """
     try:
         # Split stored password into salt and hash
-        if '$' not in stored_password:
+        if "$" not in stored_password:
             # Legacy password without salt (for backwards compatibility)
-            return hashlib.sha256(plain_password.encode()).hexdigest() == stored_password
+            return (
+                hashlib.sha256(plain_password.encode()).hexdigest() == stored_password
+            )
 
-        salt, stored_hash = stored_password.split('$', 1)
+        salt, stored_hash = stored_password.split("$", 1)
         # Hash the provided password with the stored salt
         pwd_hash = hashlib.sha256((plain_password + salt).encode()).hexdigest()
         # Compare hashes
@@ -56,11 +59,7 @@ def create_access_token(subject: str) -> str:
     """Create a JWT access token."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRES_MINUTES)
 
-    to_encode = {
-        "sub": subject,
-        "exp": expire,
-        "iat": datetime.now(timezone.utc)
-    }
+    to_encode = {"sub": subject, "exp": expire, "iat": datetime.now(timezone.utc)}
 
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
