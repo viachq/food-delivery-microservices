@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: food-delivery
+  labels:
+    app: order-service
+    service: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        service: backend
+    spec:
+      containers:
+      - name: order-service
+        image: order-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8003
+          name: http
+          protocol: TCP
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: food-delivery-secrets
+              key: JWT_SECRET_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: DATABASE_URL_ORDER
+        - name: SERVICE_NAME
+          value: "order-service"
+        - name: SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: SERVICE_PORT_ORDER
+        - name: AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: AUTH_SERVICE_URL
+        - name: CATALOG_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: CATALOG_SERVICE_URL
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: food-delivery-secrets
+              key: TELEGRAM_BOT_TOKEN
+        - name: TELEGRAM_NOTIFICATIONS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: TELEGRAM_NOTIFICATIONS_ENABLED
+        - name: TELEGRAM_ADMIN_CHAT_IDS
+          valueFrom:
+            configMapKeyRef:
+              name: food-delivery-config
+              key: TELEGRAM_ADMIN_CHAT_IDS
+        volumeMounts:
+        - name: order-db-storage
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 8003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 8003
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: order-db-storage
+        emptyDir: {}  # For production, use PersistentVolumeClaim

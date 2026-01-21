@@ -1,0 +1,63 @@
+name: Code Quality (Lint Only)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # 1. ПЕРЕВІРКА PYTHON (Бекенд)
+  lint-backend:
+    name: Lint Backend (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff Check
+        # Перевіряє папку services (де лежить весь бекенд)
+        run: ruff check ./services
+
+      - name: Run Ruff Format Check
+        # Перевіряє, чи відформатовано код правильно
+        run: ruff format --check ./services
+
+  # 2. ПЕРЕВІРКА FRONTEND (Клієнт і Адмінка)
+  lint-frontend:
+    name: Lint Frontend (ESLint)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Запускаємо окремо для папки client і папки admin
+        folder: [client, admin]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './${{ matrix.folder }}/package-lock.json'
+
+      - name: Install dependencies
+        # Заходимо в папку (client або admin) і ставимо бібліотеки
+        run: |
+          cd ${{ matrix.folder }}
+          npm ci
+
+      - name: Run ESLint
+        # Запускаємо команду lint, яка прописана в package.json
+        run: |
+          cd ${{ matrix.folder }}
+          npm run lint

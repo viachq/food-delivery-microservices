@@ -1,0 +1,84 @@
+name: Auth Service Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'services/auth-service/**'
+      - '.github/workflows/auth-service-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'services/auth-service/**'
+      - '.github/workflows/auth-service-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      working-directory: ./services/auth-service
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run linting (flake8)
+      working-directory: ./services/auth-service
+      run: |
+        pip install flake8
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 backend --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+    
+    - name: Run tests with pytest
+      working-directory: ./services/auth-service
+      env:
+        PYTHONPATH: ${{ github.workspace }}/services/auth-service
+      run: |
+        pytest tests/ -v \
+          --cov=backend \
+          --cov-report=term-missing \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-fail-under=70
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./services/auth-service/coverage.xml
+        flags: auth-service
+        name: auth-service-coverage
+      if: matrix.python-version == '3.13'
+      continue-on-error: true
+    
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-py${{ matrix.python-version }}
+        path: ./services/auth-service/htmlcov
+      if: always()
+    
+    - name: Comment coverage on PR
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 70
+      if: github.event_name == 'pull_request' && matrix.python-version == '3.13'
+      continue-on-error: true

@@ -1,0 +1,153 @@
+services:
+  # =========================
+  # Auth Service
+  # =========================
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-ippt-project-dev-secret-key-fixed-for-local-development-2024}
+      DATABASE_URL: sqlite:////app/data/auth.db
+      SERVICE_NAME: auth-service
+      SERVICE_PORT: 8001
+    volumes:
+      - auth-data:/app/data
+    networks:
+      - food-delivery-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8001)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =========================
+  # Catalog Service
+  # =========================
+  catalog-service:
+    build:
+      context: ./services/catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    ports:
+      - "8002:8002"
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-ippt-project-dev-secret-key-fixed-for-local-development-2024}
+      DATABASE_URL: sqlite:////app/data/catalog.db
+      SERVICE_NAME: catalog-service
+      SERVICE_PORT: 8002
+      AUTH_SERVICE_URL: http://auth-service:8001
+      ORDER_SERVICE_URL: http://order-service:8003
+    volumes:
+      - catalog-data:/app/data
+    networks:
+      - food-delivery-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8002)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =========================
+  # Order Service
+  # =========================
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8003:8003"
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-ippt-project-dev-secret-key-fixed-for-local-development-2024}
+      DATABASE_URL: sqlite:////app/data/order.db
+      SERVICE_NAME: order-service
+      SERVICE_PORT: 8003
+      AUTH_SERVICE_URL: http://auth-service:8001
+      CATALOG_SERVICE_URL: http://catalog-service:8002
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-dummy}
+      TELEGRAM_ADMIN_CHAT_IDS: ${TELEGRAM_ADMIN_CHAT_IDS:-0}
+      TELEGRAM_NOTIFICATIONS_ENABLED: ${TELEGRAM_NOTIFICATIONS_ENABLED:-false}
+    volumes:
+      - order-data:/app/data
+    networks:
+      - food-delivery-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8003)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =========================
+  # Client Frontend
+  # =========================
+  client-frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client-frontend
+    ports:
+      - "5174:5174"
+    networks:
+      - food-delivery-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # =========================
+  # Admin Frontend
+  # =========================
+  admin-frontend:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: admin-frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - food-delivery-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+# =========================
+# Volumes (SQLite storage)
+# =========================
+volumes:
+  auth-data:
+  catalog-data:
+  order-data:
+
+# =========================
+# Network
+# =========================
+networks:
+  food-delivery-network:
+    driver: bridge

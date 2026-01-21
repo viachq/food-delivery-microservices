@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-frontend
+  namespace: food-delivery
+  labels:
+    app: admin-frontend
+    service: frontend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5173
+    targetPort: 5173
+    protocol: TCP
+    name: http
+  selector:
+    app: admin-frontend

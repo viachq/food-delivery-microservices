@@ -1,0 +1,61 @@
+name: CI - Build, Test & Push
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  auth-service-ci:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: services/auth-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ✅ LINT
+      - name: Run lint
+        run: |
+          pip install flake8
+          flake8 backend tests
+
+      # ✅ TESTS + COVERAGE
+      - name: Run tests with coverage
+        env:
+          ENV: test
+        run: |
+          pytest --cov=backend --cov-fail-under=70
+
+      # 🔐 LOGIN
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🐳 BUILD + PUSH
+      - name: Build and Push Docker image
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/auth-service:latest
+          docker build -t $IMAGE .
+          docker push $IMAGE
